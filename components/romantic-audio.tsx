@@ -12,76 +12,75 @@ export function RomanticAudio() {
   const wasPlayingRef = useRef(false); // Track if music was playing before tab switch
   const t = useTranslation();
 
-  // Handle first user interaction to start audio (Android requires direct tap/click, not scroll)
+  // Handle first user interaction to start audio
+  // CRITICAL: Android requires play() to be called SYNCHRONOUSLY in the event handler
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || !audioRef.current) return;
 
+    const audio = audioRef.current;
     let hasStarted = false;
 
-    const startAudio = async (event?: Event) => {
-      if (hasStarted || !audioRef.current || isPlaying) return;
+    // Pre-load audio so it's ready when user taps
+    if (!audio.src || audio.src === '') {
+      audio.src = '/romantic-piano.mp3';
+      audio.load();
+    }
+
+    const startAudio = (event: Event) => {
+      // Prevent multiple starts
+      if (hasStarted || isPlaying) return;
       
       try {
-        const audio = audioRef.current;
-        
-        // Ensure src is set
-        if (!audio.src || audio.src === '') {
-          audio.src = '/romantic-piano.mp3';
-        }
-        
-        // Load the audio explicitly for Android
-        audio.load();
-        
-        // Wait for audio to be ready (Android needs this)
-        await new Promise((resolve) => {
-          if (audio.readyState >= 4) {
-            resolve(undefined);
-          } else {
-            const onCanPlay = () => {
-              audio.removeEventListener('canplaythrough', onCanPlay);
-              resolve(undefined);
-            };
-            audio.addEventListener('canplaythrough', onCanPlay);
-            // Timeout fallback for Android
-            setTimeout(() => {
-              audio.removeEventListener('canplaythrough', onCanPlay);
-              resolve(undefined);
-            }, 2000);
-          }
-        });
-        
+        // CRITICAL: Must call play() synchronously within the event handler for Android
         audio.muted = false;
+        
+        // Call play() immediately - don't await, Android needs this to be synchronous
         const playPromise = audio.play();
         
         if (playPromise !== undefined) {
-          await playPromise;
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+              hasStarted = true;
+            })
+            .catch((err) => {
+              console.log('Audio play failed:', err);
+              // Try again after a short delay if audio wasn't ready
+              if (audio.readyState < 3) {
+                audio.addEventListener('canplay', () => {
+                  audio.muted = false;
+                  audio.play()
+                    .then(() => {
+                      setIsPlaying(true);
+                      hasStarted = true;
+                    })
+                    .catch(() => {});
+                }, { once: true });
+              }
+            });
+        } else {
+          // Fallback for older browsers
           setIsPlaying(true);
           hasStarted = true;
         }
       } catch (err) {
-        console.log('Audio play error:', err);
+        console.log('Audio start error:', err);
       }
     };
 
-    // Android requires DIRECT user interaction (tap/click), NOT scroll
-    // Listen to multiple interaction types for maximum compatibility
-    const options = { once: true, passive: true, capture: true };
+    // Android requires DIRECT user interaction - listen to touchstart (not scroll)
+    // Use capture phase and non-passive to ensure we get the event
+    const options = { once: true, passive: false, capture: true };
     
-    // Touch events (Android primary)
+    // Touch events (Android primary) - touchstart is most reliable
     document.addEventListener('touchstart', startAudio, options);
-    document.addEventListener('touchend', startAudio, options);
     
-    // Click events (fallback)
-    document.addEventListener('click', startAudio, options);
-    
-    // Mouse down (desktop)
-    document.addEventListener('mousedown', startAudio, options);
+    // Click events (fallback for desktop)
+    document.addEventListener('click', startAudio, { once: true, passive: false, capture: true });
 
     return () => {
       document.removeEventListener('touchstart', startAudio);
-      document.removeEventListener('touchend', startAudio);
       document.removeEventListener('click', startAudio);
-      document.removeEventListener('mousedown', startAudio);
     };
   }, [isPlaying]);
 
@@ -224,18 +223,28 @@ export function RomanticAudio() {
     };
   }, [isMuted]);
 
-  const toggleMute = async () => {
+  const toggleMute = () => {
     // Also try to start audio if user clicks mute button and audio hasn't started
+    // This is a direct user interaction, so Android will allow it
     if (!isPlaying && audioRef.current) {
       try {
         const audio = audioRef.current;
         if (!audio.src || audio.src === '') {
           audio.src = '/romantic-piano.mp3';
+          audio.load();
         }
-        audio.load();
         audio.muted = false;
-        await audio.play();
-        setIsPlaying(true);
+        // Call play() synchronously - Android requirement
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+            })
+            .catch((err) => {
+              console.log('Audio start on button click failed:', err);
+            });
+        }
       } catch (err) {
         console.log('Audio start on mute button click:', err);
       }
