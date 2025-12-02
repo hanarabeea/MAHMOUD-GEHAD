@@ -64,12 +64,12 @@ export default function VideoIntro({ onComplete, onSkip }: VideoIntroProps) {
 
   return (
     <div 
-      className="fixed inset-0 bg-black flex items-center justify-center z-50"
+      className="fixed inset-0 bg-transparent flex items-center justify-center z-50"
       onClick={() => {
         if (!isPlaying) {
           handlePlay();
         } else {
-          onComplete();
+          onSkip();
         }
       }}
     >
@@ -79,27 +79,11 @@ export default function VideoIntro({ onComplete, onSkip }: VideoIntroProps) {
         playsInline={true}
         muted={true}
         autoPlay={true}
-        // @ts-ignore - These are valid HTML attributes that TypeScript doesn't know about
-        webkit-playsinline="true"
-        x5-playsinline="true"
-        x5-video-player-type="h5"
-        x5-video-player-fullscreen="false"
-        x5-video-orientation="portrait"
-        // @ts-ignore
-        disablePictureInPicture
-        preload="auto"
         onEnded={onComplete}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-          backgroundColor: 'black'
-        }}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        preload="auto"
+        disablePictureInPicture
       >
         <source src="/engagement-video.mp4" type="video/mp4" />
         Your browser does not support the video tag.

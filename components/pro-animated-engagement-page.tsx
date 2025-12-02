@@ -190,10 +190,10 @@ const fastStaggerContainer: Variants = {
 
 interface ProAnimatedEngagementPageProps {
   onImageLoad?: () => void;
-  playGifTrigger?: boolean;
+  introFinished?: boolean;
 }
 
-export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger }: ProAnimatedEngagementPageProps) {
+export default function ProAnimatedEngagementPage({ onImageLoad, introFinished }: ProAnimatedEngagementPageProps) {
   const t = useTranslation()
   const { language } = useLanguage()
   const [mounted, setMounted] = useState(false)
@@ -203,39 +203,25 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
   const gifRef = useRef<HTMLImageElement>(null)
   const gifTimerRef = useRef<NodeJS.Timeout | null>(null)
   const { scrollYProgress } = useScroll()
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.05])
-  
-  const opacity = useTransform(scrollYProgress, [0, 0.1], [1, 0])
-  const y = useTransform(scrollYProgress, [0, 0.1], [0, -20])
-  
-  // Animation values for the path
-  const pathLength = useTransform(scrollYProgress, [0, 0.5], [0, 1])
   const pathY1 = useTransform(scrollYProgress, [0, 0.5], [0, 20])
   const pathY2 = useTransform(scrollYProgress, [0, 0.5], [0, 40])
-  
+
   const eventDate = new Date("2026-01-01T19:00:00");
   const formattedDate = formatDate(eventDate, language);
   const formattedTime = formatTime(eventDate, language);
 
-  // On mount: preload both static image AND GIF for instant display
   useEffect(() => {
     setMounted(true);
 
     if (typeof window !== 'undefined') {
-      // Preload static PNG
       const staticImg = new window.Image();
       staticImg.src = "/invitation-design.png";
-
-      // Aggressively preload GIF to avoid lag
-      const gifImg = new window.Image();
-      gifImg.src = "/invitation-design.gif";
-      gifImg.onload = () => {
-        console.log('✅ GIF preloaded and cached');
+      staticImg.onload = () => {
+        console.log('✅ Image preloaded and cached');
         setGifPreloaded(true);
       };
-      gifImg.onerror = () => {
-        console.log('⚠️ GIF preload failed, will use static image');
-        setGifHasPlayed(true); // Skip GIF if it fails to preload
+      staticImg.onerror = () => {
+        console.log('⚠️ Image preload failed');
       };
     }
 
@@ -247,36 +233,12 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
     };
   }, []);
 
-  // When intro finishes (skipped or completed), show the GIF once and set timer
   useEffect(() => {
-    if (playGifTrigger) {
-      console.log('🎬 Playing GIF - playGifTrigger:', playGifTrigger, 'gifHasPlayed:', gifHasPlayed);
-      
-      // Reset GIF state to restart from beginning
-      setGifHasPlayed(false);
-      
-      // Clear any existing timer
-      if (gifTimerRef.current) {
-        clearTimeout(gifTimerRef.current);
-      }
-      
-      // Force GIF to restart by resetting the src
-      if (gifRef.current) {
-        const currentSrc = gifRef.current.src;
-        gifRef.current.src = '';
-        gifRef.current.src = currentSrc;
-      }
-      
-      // Set timer to end GIF after duration
-      const duration = 1000; // 1 second
-      console.log('⏱️ GIF will play for', duration, 'ms');
-      gifTimerRef.current = setTimeout(() => {
-        console.log('⏹️ GIF finished, switching to static image');
-        setGifHasPlayed(true);
-        gifTimerRef.current = null;
-      }, duration);
+    if (introFinished) {
+      console.log('🎬 Intro finished, showing image');
+      setGifHasPlayed(true);
     }
-  }, [playGifTrigger]);
+  }, [introFinished]);
 
   const handleImageLoad = () => {
     setImageLoaded(true)
@@ -284,12 +246,8 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
   }
 
   const handleGifError = () => {
-    console.log('❌ GIF error, switching to static image');
+    console.log('❌ Image error');
     setGifHasPlayed(true);
-    if (gifTimerRef.current) {
-      clearTimeout(gifTimerRef.current);
-      gifTimerRef.current = null;
-    }
   }
 
   if (!mounted) {
@@ -304,7 +262,7 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20 overflow-x-hidden">
       {/* Hero Section */}
       <motion.section 
-        className="relative"
+        className="relative h-screen"
         initial="hidden"
         animate="visible"
         variants={fastStaggerContainer}
@@ -313,43 +271,20 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
           className="w-full relative z-10"
           variants={scaleIn}
         >
-          {/* Optimized Image with immediate loading */}
-          <div className="relative w-full h-auto">
-            {(() => {
-              const shouldShowGif = playGifTrigger && !gifHasPlayed;
-              console.log('🖼️ Rendering:', shouldShowGif ? 'GIF' : 'STATIC IMAGE');
-              return shouldShowGif ? (
-                <img
-                  key="animated-gif"
-                  ref={gifRef}
-                  src="/invitation-design.gif"
-                  alt="Zeyad & Rawan Engagement Invitation"
-                  className="w-full h-auto rounded-lg shadow-2xl"
-                  onLoad={() => {
-                    console.log('✅ GIF loaded successfully');
-                    handleImageLoad();
-                  }}
-                  onError={handleGifError}
-                  style={{ display: 'block' }}
-                  fetchPriority="high"
-                  decoding="async"
-                />
-              ) : (
-                <Image
-                  key="static-image"
-                  src="/invitation-design.png"
-                  alt="Zeyad & Rawan Engagement Invitation"
-                  width={768}
-                  height={1365}
-                  className="w-full h-auto rounded-lg shadow-2xl"
-                  priority
-                  loading="eager"
-                  quality={80}
-                  onLoad={handleImageLoad}
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1200px) 80vw, 70vw"
-                />
-              );
-            })()}
+          <div className={`w-full h-full ${introFinished ? 'opacity-100' : 'opacity-0'}`}>
+            <Image
+              key="static-image"
+              src="/invitation-design.png"
+              alt="Zeyad & Rawan Engagement Invitation"
+              width={768}
+              height={1365}
+              className="w-full h-full object-contain"
+              priority
+              loading="eager"
+              quality={80}
+              onLoad={handleImageLoad}
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1200px) 80vw, 70vw"
+            />
             
             {/* Minimal loading state */}
             {!imageLoaded && (
@@ -369,7 +304,7 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
             const countdownSection = document.querySelector('section[class*="py-20"]');
             countdownSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }}
-          className="absolute bottom-12 left-8 flex flex-col items-center gap-3 z-20 cursor-pointer group"
+          className="absolute bottom-28 left-8 flex flex-col items-center gap-3 z-20 cursor-pointer group"
           initial="hidden"
           animate="visible"
           variants={flyFromLeft}
@@ -425,185 +360,107 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
       </motion.section>
 
       {/* Love Frame Section */}
-      <motion.section 
-        className="relative py-12 px-4 md:py-16 overflow-hidden"
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        variants={fadeIn}
-      >
+      <section className="relative py-12 px-4 md:py-16 overflow-hidden">
         <div className="max-w-4xl mx-auto">
-          <motion.div
+          <div
             className="relative bg-gradient-to-br from-card/95 via-card/90 to-accent/10 backdrop-blur-sm border-4 border-accent/40 p-8 md:p-12 shadow-2xl"
-            initial={{ scale: 0.95, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             style={{
               clipPath: 'polygon(8% 0%, 92% 0%, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0% 92%, 0% 8%)',
             }}
           >
             {/* Decorative corner hearts */}
-            <motion.div
-              className="absolute -top-3 -left-3"
-              initial={{ scale: 0, rotate: -180 }}
-              whileInView={{ scale: 1, rotate: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2, type: "spring" }}
-            >
+            <div className="absolute -top-3 -left-3">
               <svg className="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
-            </motion.div>
-            <motion.div
-              className="absolute -top-3 -right-3"
-              initial={{ scale: 0, rotate: 180 }}
-              whileInView={{ scale: 1, rotate: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3, type: "spring" }}
-            >
+            </div>
+            <div className="absolute -top-3 -right-3">
               <svg className="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
-            </motion.div>
-            <motion.div
-              className="absolute -bottom-3 -left-3"
-              initial={{ scale: 0, rotate: 180 }}
-              whileInView={{ scale: 1, rotate: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4, type: "spring" }}
-            >
+            </div>
+            <div className="absolute -bottom-3 -left-3">
               <svg className="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
-            </motion.div>
-            <motion.div
-              className="absolute -bottom-3 -right-3"
-              initial={{ scale: 0, rotate: -180 }}
-              whileInView={{ scale: 1, rotate: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.5, type: "spring" }}
-            >
+            </div>
+            <div className="absolute -bottom-3 -right-3">
               <svg className="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
-            </motion.div>
+            </div>
 
             {/* Side decorative hearts */}
             <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-4">
-              <motion.div
-                initial={{ scale: 0, x: -20 }}
-                whileInView={{ scale: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-              >
+              <div>
                 <svg className="w-6 h-6 text-accent/60" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
-              <motion.div
-                initial={{ scale: 0, x: -20 }}
-                whileInView={{ scale: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-              >
+              </div>
+              <div>
                 <svg className="w-6 h-6 text-accent/60" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
+              </div>
             </div>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-4">
-              <motion.div
-                initial={{ scale: 0, x: 20 }}
-                whileInView={{ scale: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-              >
+              <div>
                 <svg className="w-6 h-6 text-accent/60" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
-              <motion.div
-                initial={{ scale: 0, x: 20 }}
-                whileInView={{ scale: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.7 }}
-              >
+              </div>
+              <div>
                 <svg className="w-6 h-6 text-accent/60" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
+              </div>
             </div>
 
             {/* Main text content */}
-            <motion.div
-              className="relative z-10 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
+            <div className="relative z-10 text-center">
               <p className="font-luxury text-2xl md:text-3xl lg:text-4xl text-foreground leading-relaxed font-medium px-4 md:px-8" dir="rtl">
                 مشوار الكلية مكنش كفايه ف قررت اخدك معايا مشوار العمر كله
               </p>
-            </motion.div>
+            </div>
 
             {/* Top and bottom decorative hearts */}
             <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-3">
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0 }}
-              >
+              <div>
                 <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-              >
+              </div>
+              <div>
                 <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
-              >
+              </div>
+              <div>
                 <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
+              </div>
             </div>
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.2 }}
-              >
+              <div>
                 <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-              >
+              </div>
+              <div>
                 <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.8 }}
-              >
+              </div>
+              <div>
                 <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
-              </motion.div>
+              </div>
             </div>
-          </motion.div>
+          </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Countdown Section - Unique frame with diagonal cuts */}
       <motion.section 
