@@ -29,20 +29,27 @@ export default function VideoIntro({ onComplete, onSkip }: VideoIntroProps) {
     // Try immediately
     attemptAutoplay();
 
-    // Also try on any user interaction
+    // Also try on any user interaction - CRITICAL for Android
     const handleInteraction = () => {
-      attemptAutoplay();
+      if (video.paused) {
+        // Must call play() synchronously for Android
+        video.muted = true;
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {});
+        }
+      }
     };
 
-    document.addEventListener('touchstart', handleInteraction, { once: true });
-    document.addEventListener('click', handleInteraction, { once: true });
+    // Android needs touchstart, not just click
+    document.addEventListener('touchstart', handleInteraction, { once: true, passive: true });
+    document.addEventListener('click', handleInteraction, { once: true, passive: true });
 
     return () => {
       document.removeEventListener('touchstart', handleInteraction);
       document.removeEventListener('click', handleInteraction);
     };
   }, []);
-
 
   return (
     <div 
