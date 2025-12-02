@@ -534,12 +534,12 @@ export default function HandwrittenMessage() {
   return (
     <section 
       id="message" 
-      className="py-16 px-4 md:py-20 bg-gradient-to-b from-background to-accent/5 select-none"
+      className="py-16 px-4 md:py-20 bg-gradient-to-b from-background to-accent/5 select-none overflow-x-hidden"
       style={{
         clipPath: 'polygon(0 3%, 100% 0%, 100% 97%, 0% 100%)',
       }}
     >
-      <div className="max-w-4xl mx-auto"> {/* Increased max width */}
+      <div className="max-w-4xl mx-auto w-full"> {/* Increased max width */}
         <motion.div 
           className="text-center mb-8 select-none"
           initial="hidden"
@@ -561,7 +561,7 @@ export default function HandwrittenMessage() {
           <p className="text-gray-600 text-center mb-4 select-none">{t('writeUsDescription')}</p>
           <div className="w-20 h-1 bg-accent mx-auto mb-6 select-none"></div>
           
-          <div className="bg-white/90 p-6 md:p-8 rounded-lg shadow-lg select-none">
+          <div className="bg-white/90 p-4 sm:p-6 md:p-8 rounded-lg shadow-lg select-none pb-6 sm:pb-8">
             {/* Message Type Tabs - Prominent Button Style */}
             <div className="flex gap-4 mb-8 justify-center">
               <button
@@ -716,13 +716,13 @@ export default function HandwrittenMessage() {
                 <p className="text-sm text-gray-500 mt-2">{t('writeUsDescription')}</p>
               </div>
               
-              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2 pb-2">
                 {messageType === 'drawn' && (
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={undoLastStroke}
-                      className="flex-1 sm:flex-none px-4 sm:px-6 py-3 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors font-medium disabled:opacity-50 text-sm sm:text-base"
+                      className="flex-1 sm:flex-none min-w-0 px-3 sm:px-6 py-2.5 sm:py-3 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors font-medium disabled:opacity-50 text-xs sm:text-base"
                       disabled={isSending || history.length === 0}
                     >
                       {t('undo')}
@@ -730,7 +730,7 @@ export default function HandwrittenMessage() {
                     <button
                       type="button"
                       onClick={clearCanvas}
-                      className="flex-1 sm:flex-none px-4 sm:px-6 py-3 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors font-medium text-sm sm:text-base"
+                      className="flex-1 sm:flex-none min-w-0 px-3 sm:px-6 py-2.5 sm:py-3 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors font-medium text-xs sm:text-base"
                       disabled={isSending}
                     >
                       {t('clearDrawing')}
@@ -738,11 +738,11 @@ export default function HandwrittenMessage() {
                   </div>
                 )}
                 {messageType === 'written' && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => setWrittenText('')}
-                      className="flex-1 sm:flex-none px-4 sm:px-6 py-3 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors font-medium text-sm sm:text-base"
+                      className="flex-1 sm:flex-none min-w-0 px-3 sm:px-6 py-2.5 sm:py-3 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors font-medium text-xs sm:text-base"
                       disabled={isSending || !writtenText.trim()}
                     >
                       {t('clearDrawing')}
@@ -751,7 +751,7 @@ export default function HandwrittenMessage() {
                 )}
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-6 sm:px-8 py-3 text-white bg-accent rounded-md hover:bg-accent/90 disabled:opacity-50 transition-colors font-medium text-sm sm:text-base"
+                  className="w-full sm:w-auto px-4 sm:px-8 py-2.5 sm:py-3 text-white bg-accent rounded-md hover:bg-accent/90 disabled:opacity-50 transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
                   disabled={isSending}
                 >
                   {isSending ? t('sendingMessage') : t('sendMessage')}
