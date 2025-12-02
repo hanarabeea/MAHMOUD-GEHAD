@@ -12,37 +12,76 @@ export function RomanticAudio() {
   const wasPlayingRef = useRef(false); // Track if music was playing before tab switch
   const t = useTranslation();
 
-  // Handle first user interaction to start audio
+  // Handle first user interaction to start audio (Android requires direct tap/click, not scroll)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleFirstInteraction = async () => {
-      if (audioRef.current && !isPlaying) {
-        try {
-          // Restore src if it was cleared on background
-          const hasSrc = !!audioRef.current.getAttribute('src');
-          if (!hasSrc) {
-            audioRef.current.setAttribute('src', '/romantic-piano.mp3');
-            audioRef.current.load();
-          }
-          audioRef.current.muted = false;
-          await audioRef.current.play();
-          setIsPlaying(true);
-        } catch (err) {
-          console.log('Autoplay prevented, waiting for user interaction');
+    let hasStarted = false;
+
+    const startAudio = async (event?: Event) => {
+      if (hasStarted || !audioRef.current || isPlaying) return;
+      
+      try {
+        const audio = audioRef.current;
+        
+        // Ensure src is set
+        if (!audio.src || audio.src === '') {
+          audio.src = '/romantic-piano.mp3';
         }
+        
+        // Load the audio explicitly for Android
+        audio.load();
+        
+        // Wait for audio to be ready (Android needs this)
+        await new Promise((resolve) => {
+          if (audio.readyState >= 4) {
+            resolve(undefined);
+          } else {
+            const onCanPlay = () => {
+              audio.removeEventListener('canplaythrough', onCanPlay);
+              resolve(undefined);
+            };
+            audio.addEventListener('canplaythrough', onCanPlay);
+            // Timeout fallback for Android
+            setTimeout(() => {
+              audio.removeEventListener('canplaythrough', onCanPlay);
+              resolve(undefined);
+            }, 2000);
+          }
+        });
+        
+        audio.muted = false;
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          await playPromise;
+          setIsPlaying(true);
+          hasStarted = true;
+        }
+      } catch (err) {
+        console.log('Audio play error:', err);
       }
-      document.removeEventListener('click', handleFirstInteraction);
-      document.removeEventListener('touchstart', handleFirstInteraction);
     };
 
-    // Add event listeners for first user interaction
-    document.addEventListener('click', handleFirstInteraction, { once: true });
-    document.addEventListener('touchstart', handleFirstInteraction, { once: true, passive: true });
+    // Android requires DIRECT user interaction (tap/click), NOT scroll
+    // Listen to multiple interaction types for maximum compatibility
+    const options = { once: true, passive: true, capture: true };
+    
+    // Touch events (Android primary)
+    document.addEventListener('touchstart', startAudio, options);
+    document.addEventListener('touchend', startAudio, options);
+    
+    // Click events (fallback)
+    document.addEventListener('click', startAudio, options);
+    
+    // Mouse down (desktop)
+    document.addEventListener('mousedown', startAudio, options);
 
     return () => {
-      document.removeEventListener('click', handleFirstInteraction);
-      document.removeEventListener('touchstart', handleFirstInteraction);
+      document.removeEventListener('touchstart', startAudio);
+      document.removeEventListener('touchend', startAudio);
+      document.removeEventListener('click', startAudio);
+      document.removeEventListener('mousedown', startAudio);
     };
   }, [isPlaying]);
 
@@ -56,9 +95,17 @@ export function RomanticAudio() {
     audio.volume = 0.25;
     audio.muted = isMuted;
 
+    // Ensure src is present and set directly (Android needs this)
+    if (!audio.src || audio.src === '') {
+      audio.src = '/romantic-piano.mp3';
+    }
+
+    // Load the audio for Android compatibility
+    audio.load();
+
     // Wait for audio to be ready before attempting to play
     const handleCanPlay = () => {
-      // Try to play automatically (works on some browsers)
+      // Try to play automatically (works on some browsers, not Android)
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
@@ -66,25 +113,23 @@ export function RomanticAudio() {
             setIsPlaying(true);
             wasPlayingRef.current = true;
           })
-          .catch(() => console.log('Autoplay prevented'));
+          .catch(() => {
+            // Autoplay prevented - this is expected on Android
+            console.log('Autoplay prevented, will wait for user interaction');
+          });
       }
     };
 
-    // Ensure src is present
-    if (!audio.getAttribute('src')) {
-      audio.setAttribute('src', '/romantic-piano.mp3');
-    }
-
-    // Add event listener for when audio is ready
-    audio.addEventListener('canplay', handleCanPlay, { once: true });
+    // Use canplaythrough for better Android support
+    audio.addEventListener('canplaythrough', handleCanPlay, { once: true });
 
     // If audio is already ready, trigger immediately
-    if (audio.readyState >= 3) {
+    if (audio.readyState >= 4) {
       handleCanPlay();
     }
 
     return () => {
-      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('canplaythrough', handleCanPlay);
       if (audio && !audio.paused) {
         audio.pause();
       }
@@ -179,7 +224,22 @@ export function RomanticAudio() {
     };
   }, [isMuted]);
 
-  const toggleMute = () => {
+  const toggleMute = async () => {
+    // Also try to start audio if user clicks mute button and audio hasn't started
+    if (!isPlaying && audioRef.current) {
+      try {
+        const audio = audioRef.current;
+        if (!audio.src || audio.src === '') {
+          audio.src = '/romantic-piano.mp3';
+        }
+        audio.load();
+        audio.muted = false;
+        await audio.play();
+        setIsPlaying(true);
+      } catch (err) {
+        console.log('Audio start on mute button click:', err);
+      }
+    }
     setIsMuted(!isMuted);
   };
 
@@ -210,9 +270,11 @@ export function RomanticAudio() {
       
       <audio
         ref={audioRef}
+        src="/romantic-piano.mp3"
         loop
         playsInline
         preload="auto"
+        crossOrigin="anonymous"
         className="hidden"
       />
     </div>

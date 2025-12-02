@@ -1,11 +1,10 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import { motion, Variants } from "framer-motion"
 import { useTranslation } from "@/lib/translations"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { Button } from "@/components/ui/button"
-import QRCode from "qrcode"
+import Image from "next/image"
 import { Camera, Upload } from "lucide-react"
 
 // Professional animation variants matching the main page
@@ -77,43 +76,8 @@ const fastStaggerContainer: Variants = {
 export default function PhotoUploadSection() {
   const t = useTranslation()
   const { language } = useLanguage()
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("")
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   
   const driveLink = "https://drive.google.com/drive/folders/1GB8dqEoMXbY8KpLRnta-o1vgBD4VsWeh"
-
-  useEffect(() => {
-    // Generate QR code
-    if (canvasRef.current) {
-      QRCode.toCanvas(
-        canvasRef.current,
-        driveLink,
-        {
-          width: 200,
-          margin: 2,
-          color: {
-            dark: "#000000",
-            light: "#ffffff",
-          },
-        },
-        (error) => {
-          if (error) console.error("QR Code generation error:", error)
-        }
-      )
-    }
-
-    // Also generate data URL for potential use
-    QRCode.toDataURL(driveLink, {
-      width: 200,
-      margin: 2,
-    })
-      .then((url) => {
-        setQrCodeUrl(url)
-      })
-      .catch((err) => {
-        console.error("QR Code generation error:", err)
-      })
-  }, [driveLink])
 
   const handleUploadClick = () => {
     window.open(driveLink, "_blank")
@@ -224,7 +188,13 @@ export default function PhotoUploadSection() {
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
                 <div className="bg-white p-6 rounded-2xl shadow-lg mb-6 border-2 border-accent/10">
-                  <canvas ref={canvasRef} className="w-[200px] h-[200px]" />
+                  <Image 
+                    src="/qr-code.png" 
+                    alt="QR Code" 
+                    width={200} 
+                    height={200}
+                    className="w-[200px] h-[200px]"
+                  />
                 </div>
                 <p className="font-luxury text-lg md:text-xl text-foreground text-center mb-2 font-medium">
                   {t('scanQRCode')}
