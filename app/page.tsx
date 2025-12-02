@@ -57,7 +57,7 @@ export default function Home() {
     <main className="min-h-screen relative overflow-hidden">
       {/* Video Intro */}
       {!introFinished && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[9999] bg-black">
           <VideoIntro 
             onComplete={handleIntroFinish} 
             onSkip={handleIntroFinish} 
@@ -66,7 +66,7 @@ export default function Home() {
       )}
       
       {/* Main Content */}
-      <div className="w-full">
+      <div className={`w-full transition-opacity duration-500 ${introFinished ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <ProAnimatedEngagementPage onImageLoad={handleImageLoad} introFinished={introFinished} />
       </div>
     </main>

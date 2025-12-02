@@ -15,10 +15,9 @@ export async function POST(request: Request) {
     
     // Handle RSVP submissions
     if (submissionType === 'rsvp') {
-      const email = formData.get('email') as string;
       const guests = formData.get('guests') as string;
 
-      if (!name?.trim() || !email?.trim() || !guests?.trim()) {
+      if (!name?.trim() || !guests?.trim()) {
         return Response.json(
           { success: false, message: 'Please fill in all fields' },
           { status: 400 }
@@ -71,7 +70,6 @@ export async function POST(request: Request) {
             <h2 style="color: #4f46e5;">New RSVP Received!</h2>
             <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px;">
               <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Email:</strong> ${email}</p>
               <p><strong>Number of Guests:</strong> ${guests}</p>
             </div>
             <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">

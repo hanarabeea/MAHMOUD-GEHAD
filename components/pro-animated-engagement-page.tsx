@@ -262,23 +262,23 @@ export default function ProAnimatedEngagementPage({ onImageLoad, introFinished }
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20 overflow-x-hidden">
       {/* Hero Section */}
       <motion.section 
-        className="relative h-screen"
+        className="relative py-8 px-4 md:py-12"
         initial="hidden"
         animate="visible"
         variants={fastStaggerContainer}
       >
         <motion.div 
-          className="w-full relative z-10"
+          className="w-full max-w-2xl mx-auto relative z-10"
           variants={scaleIn}
         >
-          <div className={`w-full h-full ${introFinished ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`w-full ${introFinished ? 'opacity-100' : 'opacity-0'}`}>
             <Image
               key="static-image"
               src="/invitation-design.png"
               alt="Zeyad & Rawan Engagement Invitation"
               width={768}
               height={1365}
-              className="w-full h-full object-contain"
+              className="w-full h-auto object-contain rounded-lg shadow-2xl"
               priority
               loading="eager"
               quality={80}
@@ -304,7 +304,7 @@ export default function ProAnimatedEngagementPage({ onImageLoad, introFinished }
             const countdownSection = document.querySelector('section[class*="py-20"]');
             countdownSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }}
-          className="absolute bottom-28 left-8 flex flex-col items-center gap-3 z-20 cursor-pointer group"
+          className="absolute bottom-8 left-8 flex flex-col items-center gap-3 z-20 cursor-pointer group"
           initial="hidden"
           animate="visible"
           variants={flyFromLeft}
