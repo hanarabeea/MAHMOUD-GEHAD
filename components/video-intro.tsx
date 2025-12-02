@@ -9,7 +9,6 @@ interface VideoIntroProps {
 
 export default function VideoIntro({ onComplete, onSkip }: VideoIntroProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoLoaded, setVideoLoaded] = useState(false);
 
   // Aggressively try to autoplay on all devices
   useEffect(() => {
@@ -44,9 +43,6 @@ export default function VideoIntro({ onComplete, onSkip }: VideoIntroProps) {
     };
   }, []);
 
-  const handleVideoLoaded = () => {
-    setVideoLoaded(true);
-  };
 
   return (
     <div 
@@ -60,10 +56,10 @@ export default function VideoIntro({ onComplete, onSkip }: VideoIntroProps) {
         muted={true}
         autoPlay={true}
         onEnded={onComplete}
-        onLoadedData={handleVideoLoaded}
         preload="auto"
         disablePictureInPicture
         loop={false}
+        poster="/invitation-design.png"
       >
         <source src="/engagement-video.mp4" type="video/mp4" />
         Your browser does not support the video tag.
@@ -80,15 +76,6 @@ export default function VideoIntro({ onComplete, onSkip }: VideoIntroProps) {
         Skip
       </button>
 
-      {/* Loading indicator */}
-      {!videoLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black z-40">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
-            <p className="text-white text-sm">Loading video...</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

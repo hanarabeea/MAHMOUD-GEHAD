@@ -83,6 +83,13 @@ export default function RootLayout({
           as="image"
           type="image/png"
         />
+        {/* Preload video and poster for faster intro */}
+        <link
+          rel="preload"
+          href="/engagement-video.mp4"
+          as="video"
+          type="video/mp4"
+        />
         {/* Preconnect to domains for faster loading */}
         <link rel="preconnect" href="https://maps.googleapis.com" />
         <link rel="preconnect" href="https://maps.gstatic.com" />
