@@ -12,12 +12,16 @@ export async function POST(request: Request) {
     const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER || '';
     const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || process.env.GOOGLE_APP_PASSWORD || '';
     const toEmail = process.env.CONTACT_EMAIL || smtpUser || '';
-    
+
     // Handle RSVP submissions
     if (submissionType === 'rsvp') {
       const guests = formData.get('guests') as string;
+      const attending = (formData.get('attending') as string) || 'yes';
+      const guestNames = (formData.get('guestNames') as string) || '';
+      const isAttending = attending === 'yes';
+      const guestsNumber = parseInt(guests || '0', 10) || 0;
 
-      if (!name?.trim() || !guests?.trim()) {
+      if (!name?.trim() || (isAttending && !guests?.trim())) {
         return Response.json(
           { success: false, message: 'Please fill in all fields' },
           { status: 400 }
@@ -59,6 +63,14 @@ export async function POST(request: Request) {
         );
       }
 
+      const attendanceStatus = isAttending ? 'Attending' : 'Not attending';
+      const guestsSection = isAttending && guestsNumber > 0
+        ? `<p><strong>Number of Guests:</strong> ${guestsNumber}</p>`
+        : '';
+      const guestNamesSection = isAttending && guestNames.trim()
+        ? `<p><strong>Guest Names:</strong> ${guestNames}</p>`
+        : '';
+
       // Send RSVP email
       try {
         const info = await transporter.sendMail({
@@ -70,7 +82,9 @@ export async function POST(request: Request) {
             <h2 style="color: #4f46e5;">New RSVP Received!</h2>
             <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px;">
               <p><strong>Name:</strong> ${name}</p>
-              <p><strong>Number of Guests:</strong> ${guests}</p>
+              <p><strong>Attendance:</strong> ${attendanceStatus}</p>
+              ${guestsSection}
+              ${guestNamesSection}
             </div>
             <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
               This RSVP was submitted through the engagement website.

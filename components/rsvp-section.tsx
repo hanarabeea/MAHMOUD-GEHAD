@@ -9,17 +9,69 @@ export default function RSVPSection() {
   const t = useTranslation()
   const { language } = useLanguage()
   const [name, setName] = useState('')
+  const [attending, setAttending] = useState<'yes' | 'no' | ''>('')
   const [guests, setGuests] = useState('1')
+  const [guestNames, setGuestNames] = useState<string[]>([''])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState({ text: '', type: '' as 'success' | 'error' | 'info' | '' })
+
+  const handleGuestsChange = (value: string) => {
+    setGuests(value)
+    const count = parseInt(value, 10) || 0
+    setGuestNames((prev) => {
+      const next = [...prev]
+      if (count > next.length) {
+        while (next.length < count) {
+          next.push('')
+        }
+      } else if (count < next.length) {
+        next.length = count
+      }
+      return next
+    })
+  }
+
+  const handleGuestNameChange = (index: number, value: string) => {
+    setGuestNames((prev) => {
+      const next = [...prev]
+      next[index] = value
+      return next
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validation
-    if (!name.trim() || !guests.trim()) {
+    if (!name.trim()) {
       setMessage({ text: t('rsvpError'), type: 'error' })
       return
+    }
+
+    if (attending !== 'yes' && attending !== 'no') {
+      setMessage({ text: t('rsvpError'), type: 'error' })
+      return
+    }
+
+    if (attending === 'yes') {
+      if (!guests.trim()) {
+        setMessage({ text: t('rsvpError'), type: 'error' })
+        return
+      }
+
+      const guestCountNumber = parseInt(guests, 10) || 0
+      if (guestCountNumber < 1) {
+        setMessage({ text: t('rsvpError'), type: 'error' })
+        return
+      }
+
+      const hasEmptyGuestName = guestNames
+        .slice(0, guestCountNumber)
+        .some((guestName) => !guestName.trim())
+      if (hasEmptyGuestName) {
+        setMessage({ text: t('rsvpError'), type: 'error' })
+        return
+      }
     }
 
     setIsSubmitting(true)
@@ -27,9 +79,20 @@ export default function RSVPSection() {
 
     try {
       const formData = new FormData()
+      const guestsValue = attending === 'yes' ? guests.trim() : '0'
+
       formData.append('name', name.trim())
-      formData.append('guests', guests.trim())
+      formData.append('attending', attending)
+      formData.append('guests', guestsValue)
       formData.append('type', 'rsvp')
+
+      if (attending === 'yes') {
+        const guestCountNumber = parseInt(guestsValue, 10) || 0
+        const joinedGuestNames = guestNames
+          .slice(0, guestCountNumber)
+          .join(', ')
+        formData.append('guestNames', joinedGuestNames)
+      }
 
       const response = await fetch('/api/send-email', {
         method: 'POST',
@@ -73,7 +136,9 @@ export default function RSVPSection() {
       
       // Reset form
       setName('')
+      setAttending('')
       setGuests('1')
+      setGuestNames([''])
       
     } catch (error) {
       console.error('Error submitting RSVP:', error)
@@ -226,26 +291,94 @@ export default function RSVPSection() {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
             >
-              <label htmlFor="rsvp-guests" className="block text-sm font-medium text-foreground mb-2 font-luxury">
-                {t('rsvpFormGuests')}
+              <label className="block text-sm font-medium text-foreground mb-3 font-luxury">
+                {language === 'ar' ? 'حالة الحضور' : 'Attendance'}
               </label>
-              <select
-                id="rsvp-guests"
-                value={guests}
-                onChange={(e) => setGuests(e.target.value)}
-                className="w-full px-4 py-3 bg-background/50 border-2 border-accent/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all font-luxury"
-                required
-                disabled={isSubmitting}
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                  <option key={num} value={num.toString()}>
-                    {num} {num === 1 ? (language === 'ar' ? 'ضيف' : 'Guest') : (language === 'ar' ? 'ضيوف' : 'Guests')}
-                  </option>
-                ))}
-              </select>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAttending('yes')}
+                  className={`px-4 py-2 rounded-lg border-2 font-luxury transition-all ${
+                    attending === 'yes'
+                      ? 'bg-accent text-white border-accent shadow-md'
+                      : 'bg-background/50 text-foreground border-accent/30 hover:border-accent/60'
+                  }`}
+                  disabled={isSubmitting}
+                >
+                  {language === 'ar' ? 'سأحضر' : 'Attending'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAttending('no')}
+                  className={`px-4 py-2 rounded-lg border-2 font-luxury transition-all ${
+                    attending === 'no'
+                      ? 'bg-accent text-white border-accent shadow-md'
+                      : 'bg-background/50 text-foreground border-accent/30 hover:border-accent/60'
+                  }`}
+                  disabled={isSubmitting}
+                >
+                  {language === 'ar' ? 'لن أتمكن من الحضور' : 'Not attending'}
+                </button>
+              </div>
             </motion.div>
+
+            {attending === 'yes' && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                >
+                  <label htmlFor="rsvp-guests" className="block text-sm font-medium text-foreground mb-2 font-luxury">
+                    {t('rsvpFormGuests')}
+                  </label>
+                  <select
+                    id="rsvp-guests"
+                    value={guests}
+                    onChange={(e) => handleGuestsChange(e.target.value)}
+                    className="w-full px-4 py-3 bg-background/50 border-2 border-accent/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all font-luxury"
+                    disabled={isSubmitting}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                      <option key={num} value={num.toString()}>
+                        {num} {num === 1 ? (language === 'ar' ? 'ضيف' : 'Guest') : (language === 'ar' ? 'ضيوف' : 'Guests')}
+                      </option>
+                    ))}
+                  </select>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.35 }}
+                >
+                  <label className="block text-sm font-medium text-foreground mb-2 font-luxury">
+                    {language === 'ar' ? 'أسماء الضيوف' : 'Guest Names'}
+                  </label>
+                  <div className="space-y-3">
+                    {Array.from({ length: parseInt(guests, 10) || 0 }).map((_, index) => (
+                      <input
+                        key={index}
+                        type="text"
+                        value={guestNames[index] || ''}
+                        onChange={(e) => handleGuestNameChange(index, e.target.value)}
+                        placeholder={
+                          language === 'ar'
+                            ? `اسم الضيف ${index + 1}`
+                            : `Guest ${index + 1} Name`
+                        }
+                        className="w-full px-4 py-3 bg-background/50 border-2 border-accent/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all font-luxury"
+                        disabled={isSubmitting}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              </>
+            )}
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
