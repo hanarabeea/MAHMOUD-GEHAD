@@ -80,7 +80,7 @@ export default function PhotoUploadSection() {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("")
   const canvasRef = useRef<HTMLCanvasElement>(null)
   
-  const driveLink = "https://drive.google.com/drive/folders/1LtNCEw1zWRF81qEyUrIJi-t_FPpEw_si?usp=drive_link"
+  const driveLink = "https://drive.google.com/drive/folders/1GB8dqEoMXbY8KpLRnta-o1vgBD4VsWeh"
 
   useEffect(() => {
     // Generate QR code

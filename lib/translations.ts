@@ -79,8 +79,8 @@ export const translations: Translations = {
     ar: 'يومنا الخاص',
   },
   countingMoments: {
-    en: 'Counting every moment until we celebrate together',
-    ar: 'نعد كل لحظة حتى نحتفل معاً',
+    en: 'Dreams come true',
+    ar: 'الأحلام تتحقق',
   },
   joinUsAt: {
     en: 'Join Us At',

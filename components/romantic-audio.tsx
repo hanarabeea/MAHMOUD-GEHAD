@@ -191,12 +191,12 @@ export function RomanticAudio() {
         onClick={toggleMute}
         className="
           rounded-full w-12 h-12 
-          bg-pink-100 hover:bg-pink-200 
-          active:bg-pink-300
+          bg-accent hover:bg-muted
+          active:bg-muted/80
           transition-all duration-200 
           flex items-center justify-center
           shadow-md
-          text-pink-700
+          text-accent-foreground
         "
         aria-label={isMuted ? t('unmuteMusic') : t('muteMusic')}
         title={isMuted ? t('unmuteMusic') : t('muteMusic')}

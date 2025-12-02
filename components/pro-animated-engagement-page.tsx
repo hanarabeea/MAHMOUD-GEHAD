@@ -299,6 +299,9 @@ export default function ProAnimatedEngagementPage({ onImageLoad, introFinished }
           </div>
         </motion.div>
         
+        <div className="mt-6 w-full max-w-2xl mx-auto text-center px-4">
+        </div>
+        
         {/* Scroll Down Indicator - Flying from left */}
         <motion.button
           onClick={() => {
@@ -359,109 +362,6 @@ export default function ProAnimatedEngagementPage({ onImageLoad, introFinished }
           style={{ y: pathY2 }}
         />
       </motion.section>
-
-      {/* Love Frame Section */}
-      <section className="relative py-12 px-4 md:py-16 overflow-hidden">
-        <div className="max-w-4xl mx-auto">
-          <div
-            className="relative bg-gradient-to-br from-card/95 via-card/90 to-accent/10 backdrop-blur-sm border-4 border-accent/40 p-8 md:p-12 shadow-2xl"
-            style={{
-              clipPath: 'polygon(8% 0%, 92% 0%, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0% 92%, 0% 8%)',
-            }}
-          >
-            {/* Decorative corner hearts */}
-            <div className="absolute -top-3 -left-3">
-              <svg className="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </div>
-            <div className="absolute -top-3 -right-3">
-              <svg className="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </div>
-            <div className="absolute -bottom-3 -left-3">
-              <svg className="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </div>
-            <div className="absolute -bottom-3 -right-3">
-              <svg className="w-12 h-12 text-accent" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </div>
-
-            {/* Side decorative hearts */}
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-4">
-              <div>
-                <svg className="w-6 h-6 text-accent/60" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-              <div>
-                <svg className="w-6 h-6 text-accent/60" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-            </div>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-4">
-              <div>
-                <svg className="w-6 h-6 text-accent/60" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-              <div>
-                <svg className="w-6 h-6 text-accent/60" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* Main text content */}
-            <div className="relative z-10 text-center">
-              <p className="font-luxury text-2xl md:text-3xl lg:text-4xl text-foreground leading-relaxed font-medium px-4 md:px-8" dir="rtl">
-                مشوار الكلية مكنش كفايه ف قررت اخدك معايا مشوار العمر كله
-              </p>
-            </div>
-
-            {/* Top and bottom decorative hearts */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-3">
-              <div>
-                <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-              <div>
-                <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-              <div>
-                <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-            </div>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3">
-              <div>
-                <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-              <div>
-                <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-              <div>
-                <svg className="w-5 h-5 text-accent/50" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Countdown Section - Unique frame with diagonal cuts */}
       <motion.section 
@@ -525,7 +425,7 @@ export default function ProAnimatedEngagementPage({ onImageLoad, introFinished }
             <motion.h2 className="font-luxury text-5xl md:text-6xl lg:text-7xl text-foreground leading-tight mb-6 tracking-wide" variants={flyFromRight}>
               {t('ourSpecialDay')}
             </motion.h2>
-            <motion.p className="font-luxury text-xl md:text-2xl text-muted-foreground font-light max-w-3xl italic" variants={scaleIn}>
+            <motion.p className="font-luxury text-3xl md:text-3xl lg:text-4xl font-normal max-w-3xl italic bg-clip-text text-transparent bg-gradient-to-br from-primary via-accent to-primary/60 drop-shadow-lg" variants={scaleIn}>
               {t('countingMoments')}
             </motion.p>
           </motion.div>
@@ -742,6 +642,30 @@ export default function ProAnimatedEngagementPage({ onImageLoad, introFinished }
 
       {/* Love Story Gallery Section */}
       <LoveStoryGallery />
+      
+      {/* College Journey Text - Enhanced */}
+      <motion.div 
+        className="relative pt-4 pb-8 px-4 text-center"
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-30px" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <div className="max-w-3xl mx-auto">
+          <motion.p 
+            className="font-luxury text-2xl md:text-3xl leading-relaxed font-medium mt-0" 
+            dir="rtl"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent via-primary to-accent">
+              ~مشوار الكلية مكنش كفايه ف قررت اخدك معايا مشوار العمر كله~
+            </span>
+          </motion.p>
+        </div>
+      </motion.div>
 
       {/* Message Section */}
       <HandwrittenMessage />
