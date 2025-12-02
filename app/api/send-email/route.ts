@@ -7,10 +7,101 @@ export const runtime = 'nodejs';
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
+    const submissionType = formData.get('type') as string;
     const name = formData.get('name') as string;
     const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER || '';
     const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || process.env.GOOGLE_APP_PASSWORD || '';
     const toEmail = process.env.CONTACT_EMAIL || smtpUser || '';
+    
+    // Handle RSVP submissions
+    if (submissionType === 'rsvp') {
+      const email = formData.get('email') as string;
+      const guests = formData.get('guests') as string;
+
+      if (!name?.trim() || !email?.trim() || !guests?.trim()) {
+        return Response.json(
+          { success: false, message: 'Please fill in all fields' },
+          { status: 400 }
+        );
+      }
+
+      // Validate environment variables
+      if (!smtpUser || !smtpPass) {
+        return Response.json(
+          { success: false, message: 'Email service not configured. Missing SMTP credentials.' },
+          { status: 500 }
+        );
+      }
+      if (!toEmail) {
+        return Response.json(
+          { success: false, message: 'Email service not configured. Missing recipient email.' },
+          { status: 500 }
+        );
+      }
+
+      // Create transporter
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      // Verify SMTP connection
+      try {
+        await transporter.verify();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'SMTP verification failed';
+        console.error('SMTP verify error:', err);
+        return Response.json(
+          { success: false, message: `Email service error: ${msg}` },
+          { status: 500 }
+        );
+      }
+
+      // Send RSVP email
+      try {
+        const info = await transporter.sendMail({
+          from: `"Engagement Website" <${smtpUser}>`,
+          to: toEmail,
+          subject: `New RSVP from ${name}`,
+          html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #4f46e5;">New RSVP Received!</h2>
+            <div style="margin: 20px 0; padding: 20px; background: #f9fafb; border-radius: 8px;">
+              <p><strong>Name:</strong> ${name}</p>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Number of Guests:</strong> ${guests}</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+              This RSVP was submitted through the engagement website.
+            </p>
+          </div>
+        `,
+        });
+
+        return Response.json({ 
+          success: true, 
+          message: 'RSVP submitted successfully!',
+          messageId: info.messageId
+        });
+      } catch (err: any) {
+        console.error('Error sending RSVP email:', err);
+        const message = (err && (err.message || err.toString())) || 'Unknown email error';
+        return Response.json(
+          {
+            success: false,
+            message,
+            code: err?.code || null,
+            provider: 'gmail',
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // Handle message submissions (existing code)
     const imageFile = formData.get('image') as File | null;
     const textMessage = formData.get('textMessage') as string | null;
     const messageType = imageFile ? 'drawn' : 'written';
