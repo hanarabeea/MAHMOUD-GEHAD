@@ -189,10 +189,10 @@ const fastStaggerContainer: Variants = {
 
 interface ProAnimatedEngagementPageProps {
   onImageLoad?: () => void;
-  playGifTrigger?: boolean;
+  introFinished?: boolean;
 }
 
-export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger }: ProAnimatedEngagementPageProps) {
+export default function ProAnimatedEngagementPage({ onImageLoad, introFinished }: ProAnimatedEngagementPageProps) {
   const t = useTranslation()
   const { language } = useLanguage()
   const [mounted, setMounted] = useState(false)
@@ -202,39 +202,25 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
   const gifRef = useRef<HTMLImageElement>(null)
   const gifTimerRef = useRef<NodeJS.Timeout | null>(null)
   const { scrollYProgress } = useScroll()
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.05])
-  
-  const opacity = useTransform(scrollYProgress, [0, 0.1], [1, 0])
-  const y = useTransform(scrollYProgress, [0, 0.1], [0, -20])
-  
-  // Animation values for the path
-  const pathLength = useTransform(scrollYProgress, [0, 0.5], [0, 1])
   const pathY1 = useTransform(scrollYProgress, [0, 0.5], [0, 20])
   const pathY2 = useTransform(scrollYProgress, [0, 0.5], [0, 40])
-  
+
   const eventDate = new Date("2026-01-01T19:00:00");
   const formattedDate = formatDate(eventDate, language);
   const formattedTime = formatTime(eventDate, language);
 
-  // On mount: preload both static image AND GIF for instant display
   useEffect(() => {
     setMounted(true);
 
     if (typeof window !== 'undefined') {
-      // Preload static PNG
       const staticImg = new window.Image();
       staticImg.src = "/invitation-design.png";
-
-      // Aggressively preload GIF to avoid lag
-      const gifImg = new window.Image();
-      gifImg.src = "/invitation-design.gif";
-      gifImg.onload = () => {
-        console.log('✅ GIF preloaded and cached');
+      staticImg.onload = () => {
+        console.log('✅ Image preloaded and cached');
         setGifPreloaded(true);
       };
-      gifImg.onerror = () => {
-        console.log('⚠️ GIF preload failed, will use static image');
-        setGifHasPlayed(true); // Skip GIF if it fails to preload
+      staticImg.onerror = () => {
+        console.log('⚠️ Image preload failed');
       };
     }
 
@@ -246,36 +232,12 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
     };
   }, []);
 
-  // When intro finishes (skipped or completed), show the GIF once and set timer
   useEffect(() => {
-    if (playGifTrigger) {
-      console.log('🎬 Playing GIF - playGifTrigger:', playGifTrigger, 'gifHasPlayed:', gifHasPlayed);
-      
-      // Reset GIF state to restart from beginning
-      setGifHasPlayed(false);
-      
-      // Clear any existing timer
-      if (gifTimerRef.current) {
-        clearTimeout(gifTimerRef.current);
-      }
-      
-      // Force GIF to restart by resetting the src
-      if (gifRef.current) {
-        const currentSrc = gifRef.current.src;
-        gifRef.current.src = '';
-        gifRef.current.src = currentSrc;
-      }
-      
-      // Set timer to end GIF after duration
-      const duration = 1000; // 1 second
-      console.log('⏱️ GIF will play for', duration, 'ms');
-      gifTimerRef.current = setTimeout(() => {
-        console.log('⏹️ GIF finished, switching to static image');
-        setGifHasPlayed(true);
-        gifTimerRef.current = null;
-      }, duration);
+    if (introFinished) {
+      console.log('🎬 Intro finished, showing image');
+      setGifHasPlayed(true);
     }
-  }, [playGifTrigger]);
+  }, [introFinished]);
 
   const handleImageLoad = () => {
     setImageLoaded(true)
@@ -283,12 +245,8 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
   }
 
   const handleGifError = () => {
-    console.log('❌ GIF error, switching to static image');
+    console.log('❌ Image error');
     setGifHasPlayed(true);
-    if (gifTimerRef.current) {
-      clearTimeout(gifTimerRef.current);
-      gifTimerRef.current = null;
-    }
   }
 
   if (!mounted) {
@@ -303,7 +261,7 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20 overflow-x-hidden">
       {/* Hero Section */}
       <motion.section 
-        className="relative"
+        className="relative h-screen"
         initial="hidden"
         animate="visible"
         variants={fastStaggerContainer}
@@ -312,43 +270,20 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
           className="w-full relative z-10"
           variants={scaleIn}
         >
-          {/* Optimized Image with immediate loading */}
-          <div className="relative w-full h-auto">
-            {(() => {
-              const shouldShowGif = playGifTrigger && !gifHasPlayed;
-              console.log('🖼️ Rendering:', shouldShowGif ? 'GIF' : 'STATIC IMAGE');
-              return shouldShowGif ? (
-                <img
-                  key="animated-gif"
-                  ref={gifRef}
-                  src="/invitation-design.gif"
-                  alt="Zeyad & Rawan Engagement Invitation"
-                  className="w-full h-auto rounded-lg shadow-2xl"
-                  onLoad={() => {
-                    console.log('✅ GIF loaded successfully');
-                    handleImageLoad();
-                  }}
-                  onError={handleGifError}
-                  style={{ display: 'block' }}
-                  fetchPriority="high"
-                  decoding="async"
-                />
-              ) : (
-                <Image
-                  key="static-image"
-                  src="/invitation-design.png"
-                  alt="Zeyad & Rawan Engagement Invitation"
-                  width={768}
-                  height={1365}
-                  className="w-full h-auto rounded-lg shadow-2xl"
-                  priority
-                  loading="eager"
-                  quality={80}
-                  onLoad={handleImageLoad}
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1200px) 80vw, 70vw"
-                />
-              );
-            })()}
+          <div className={`w-full h-full ${introFinished ? 'opacity-100' : 'opacity-0'}`}>
+            <Image
+              key="static-image"
+              src="/invitation-design.png"
+              alt="Zeyad & Rawan Engagement Invitation"
+              width={768}
+              height={1365}
+              className="w-full h-full object-contain"
+              priority
+              loading="eager"
+              quality={80}
+              onLoad={handleImageLoad}
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, (max-width: 1200px) 80vw, 70vw"
+            />
             
             {/* Minimal loading state */}
             {!imageLoaded && (
@@ -368,7 +303,7 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
             const countdownSection = document.querySelector('section[class*="py-20"]');
             countdownSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }}
-          className="absolute bottom-12 left-8 flex flex-col items-center gap-3 z-20 cursor-pointer group"
+          className="absolute bottom-28 left-8 flex flex-col items-center gap-3 z-20 cursor-pointer group"
           initial="hidden"
           animate="visible"
           variants={flyFromLeft}
@@ -535,17 +470,13 @@ export default function ProAnimatedEngagementPage({ onImageLoad, playGifTrigger 
             </div>
 
             {/* Main text content */}
-            <motion.div
+            <div
               className="relative z-10 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.3 }}
             >
               <p className="font-luxury text-2xl md:text-3xl lg:text-4xl text-foreground leading-relaxed font-medium px-4 md:px-8" dir="rtl">
                 مشوار الكلية مكنش كفايه ف قررت اخدك معايا مشوار العمر كله
               </p>
-            </motion.div>
+            </div>
 
             {/* Top and bottom decorative hearts */}
             <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-3">
